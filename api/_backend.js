@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import nodemailer from 'nodemailer';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'agrimind_vercel_secret_change_me';
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
@@ -11,12 +12,7 @@ const users = globalThis.__AGRIMIND_USERS__;
 if (!globalThis.__AGRIMIND_RATE__) globalThis.__AGRIMIND_RATE__ = new Map();
 const loginAttempts = globalThis.__AGRIMIND_RATE__;
 
-const mailer = GMAIL_USER && GMAIL_APP_PASSWORD ? nodemailer.createTransport({ service: 'gmail', auth: { user: GMAIL_USER, pass: GMAIL_APP_PASSWORD } }) : null;
-
-let nodemailerMod;
-try { nodemailerMod = (await import('nodemailer')).default; } catch {}
-const mailerFallback = (!mailer && nodemailerMod && GMAIL_USER && GMAIL_APP_PASSWORD) ? nodemailerMod.createTransport({ service: 'gmail', auth: { user: GMAIL_USER, pass: GMAIL_APP_PASSWORD } }) : null;
-const mail = mailer || mailerFallback;
+const mail = GMAIL_USER && GMAIL_APP_PASSWORD ? nodemailer.createTransport({ service: 'gmail', auth: { user: GMAIL_USER, pass: GMAIL_APP_PASSWORD } }) : null;
 
 function hashPassword(password, salt = crypto.randomBytes(16).toString('hex')) {
   const hash = crypto.pbkdf2Sync(password, salt, 120000, 64, 'sha512').toString('hex');
