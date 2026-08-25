@@ -11,8 +11,6 @@
   "lang": "en",
   "scope": "/",
   "icons": [
-    { "src": "/favicon.svg", "sizes": "32x32", "type": "image/svg+xml" },
-    { "src": "/icon-72.png", "sizes": "72x72", "type": "image/png" },
     { "src": "/icon-96.png", "sizes": "96x96", "type": "image/png" },
     { "src": "/icon-128.png", "sizes": "128x128", "type": "image/png" },
     { "src": "/icon-144.png", "sizes": "144x144", "type": "image/png" },
