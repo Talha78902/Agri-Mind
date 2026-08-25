@@ -1,5 +1,5 @@
-import { users, generateTOTP, requireAuth, send, requirePost, crypto } from '../_backend.js';
-import crypto2 from 'crypto';
+import { users, generateTOTP, requireAuth, send, requirePost } from '../_backend.js';
+import crypto from 'crypto';
 
 export default async function handler(req, res) {
   if (!requirePost(req, res)) return;
@@ -16,7 +16,7 @@ export default async function handler(req, res) {
   if (code !== expected) return send(res, 400, { error: 'Invalid code.' });
 
   u.totpEnabled = true;
-  const backupCodes = Array.from({ length: 8 }, () => crypto2.randomBytes(4).toString('hex').toUpperCase());
+  const backupCodes = Array.from({ length: 8 }, () => crypto.randomBytes(4).toString('hex').toUpperCase());
   u.backupCodes = backupCodes;
 
   send(res, 200, { message: '2FA enabled.', backupCodes });
