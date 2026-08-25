@@ -1,5 +1,4 @@
 import crypto from 'crypto';
-import nodemailer from 'nodemailer';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'agrimind_vercel_secret_change_me';
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
@@ -9,13 +8,15 @@ const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD;
 if (!globalThis.__AGRIMIND_USERS__) globalThis.__AGRIMIND_USERS__ = [];
 const users = globalThis.__AGRIMIND_USERS__;
 
-if (!globalThis.__AGRIMIND_OTP__) globalThis.__AGRIMIND_OTP__ = new Map();
-const otpStore = globalThis.__AGRIMIND_OTP__;
-
 if (!globalThis.__AGRIMIND_RATE__) globalThis.__AGRIMIND_RATE__ = new Map();
 const loginAttempts = globalThis.__AGRIMIND_RATE__;
 
 const mailer = GMAIL_USER && GMAIL_APP_PASSWORD ? nodemailer.createTransport({ service: 'gmail', auth: { user: GMAIL_USER, pass: GMAIL_APP_PASSWORD } }) : null;
+
+let nodemailerMod;
+try { nodemailerMod = (await import('nodemailer')).default; } catch {}
+const mailerFallback = (!mailer && nodemailerMod && GMAIL_USER && GMAIL_APP_PASSWORD) ? nodemailerMod.createTransport({ service: 'gmail', auth: { user: GMAIL_USER, pass: GMAIL_APP_PASSWORD } }) : null;
+const mail = mailer || mailerFallback;
 
 function hashPassword(password, salt = crypto.randomBytes(16).toString('hex')) {
   const hash = crypto.pbkdf2Sync(password, salt, 120000, 64, 'sha512').toString('hex');
@@ -30,7 +31,7 @@ function verifyPassword(password, stored) {
 }
 
 function base64url(input) {
-  return Buffer.from(input).toString('base64url');
+  return Buffer.from(typeof input === 'string' ? input : input).toString('base64url');
 }
 
 function signToken(payload) {
@@ -48,6 +49,20 @@ function verifyToken(token) {
   if (sig !== expected) return null;
   try { return JSON.parse(Buffer.from(body, 'base64url').toString('utf8')); }
   catch { return null; }
+}
+
+function signOtpToken(email, otp, purpose, extraData = {}) {
+  const otpHash = crypto.createHash('sha256').update(otp).digest('hex');
+  return signToken({ email, otpHash, purpose, ...extraData, tokenType: 'otp', iat: Date.now() });
+}
+
+function verifyOtpToken(token, submittedOtp) {
+  const payload = verifyToken(token);
+  if (!payload || payload.tokenType !== 'otp') return null;
+  if (Date.now() - (payload.iat || 0) > 600000) return null;
+  const submittedHash = crypto.createHash('sha256').update(submittedOtp).digest('hex');
+  if (payload.otpHash !== submittedHash) return null;
+  return payload;
 }
 
 function publicUser(user) {
@@ -118,9 +133,9 @@ function recordAttempt(key) {
 function clearAttempts(key) { loginAttempts.delete(key); }
 
 async function sendEmail(to, subject, html) {
-  if (!mailer) { console.log(`[EMAIL SKIPPED] No Gmail configured. To: ${to}`); return false; }
+  if (!mail) { console.log(`[EMAIL SKIPPED] No Gmail configured. To: ${to}`); return false; }
   try {
-    await mailer.sendMail({ from: `"AgriMind" <${GMAIL_USER}>`, to, subject, html });
+    await mail.sendMail({ from: `"AgriMind" <${GMAIL_USER}>`, to, subject, html });
     console.log(`[EMAIL SENT] To: ${to}, Subject: ${subject}`);
     return true;
   } catch (err) {
@@ -171,4 +186,4 @@ async function callGroq({ model, system, messages, temperature = 0.7, max_tokens
   return data?.choices?.[0]?.message?.content || 'No response received from model.';
 }
 
-export { users, hashPassword, verifyPassword, signToken, verifyToken, publicUser, send, requirePost, requireAuth, callGroq, generateOTP, generateSecret, generateTOTP, validateEmail, validatePasswordStrength, rateLimitCheck, recordAttempt, clearAttempts, otpStore, sendEmail, otpEmailHtml };
+export { users, hashPassword, verifyPassword, signToken, verifyToken, signOtpToken, verifyOtpToken, publicUser, send, requirePost, requireAuth, callGroq, generateOTP, generateSecret, generateTOTP, validateEmail, validatePasswordStrength, rateLimitCheck, recordAttempt, clearAttempts, sendEmail, otpEmailHtml };

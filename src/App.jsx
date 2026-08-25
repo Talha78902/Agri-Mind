@@ -295,17 +295,17 @@ export default function AgriAssistant() {
     try {
       setAuthError("Sending verification code...");
       const d = await apiRequest("/api/auth/send-otp", { method:"POST", body:JSON.stringify({email:ce,name:cn,password,purpose:"signup"}) });
-      setAuthData({ email:ce, name:cn, password, otpFromServer: d.otp });
+      setAuthData({ email:ce, name:cn, password, otpToken: d.otpToken });
       setAuthFlow("otp-signup");
       setAuthError("");
     } catch (e) { setAuthError(e.message || "Failed to send verification code."); }
   };
 
   const handleOtpVerify = async (otp) => {
-    const { email, password, name } = authData;
+    const { email, otpToken } = authData;
     try {
       setAuthError("Verifying code...");
-      const d = await apiRequest("/api/auth/verify-otp", { method:"POST", body:JSON.stringify({email, otp, purpose:"signup"}) });
+      const d = await apiRequest("/api/auth/verify-otp", { method:"POST", body:JSON.stringify({otp, otpToken, purpose:"signup"}) });
       startSession(d.user, d.token);
     } catch (e) { setAuthError(e.message || "Verification failed."); }
   };
@@ -346,17 +346,17 @@ export default function AgriAssistant() {
     try {
       setAuthError("Sending reset code...");
       const d = await apiRequest("/api/auth/forgot-password", { method:"POST", body:JSON.stringify({email:ce}) });
-      setAuthData({ email:ce, otpFromServer: d.otp });
+      setAuthData({ email:ce, otpToken: d.otpToken });
       setAuthFlow("otp-reset");
-      setAuthError("If this email exists, a reset code has been sent. (Dev: check server console)");
+      setAuthError("If this email exists, a reset code has been sent.");
     } catch (e) { setAuthError(e.message || "Failed to send reset code."); }
   };
 
   const handleResetOtp = async (otp) => {
-    const { email } = authData;
+    const { email, otpToken } = authData;
     try {
       setAuthError("Verifying code...");
-      const d = await apiRequest("/api/auth/verify-otp", { method:"POST", body:JSON.stringify({email, otp, purpose:"reset"}) });
+      const d = await apiRequest("/api/auth/verify-otp", { method:"POST", body:JSON.stringify({otp, otpToken, purpose:"reset"}) });
       setAuthData({ ...authData, resetToken: d.resetToken });
       setAuthFlow("reset-password");
       setAuthError("");

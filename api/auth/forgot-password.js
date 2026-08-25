@@ -1,4 +1,4 @@
-import { users, validateEmail, rateLimitCheck, otpStore, generateOTP, sendEmail, otpEmailHtml, send, requirePost } from '../_backend.js';
+import { users, validateEmail, rateLimitCheck, generateOTP, signOtpToken, sendEmail, otpEmailHtml, send, requirePost } from '../_backend.js';
 
 export default async function handler(req, res) {
   if (!requirePost(req, res)) return;
@@ -7,14 +7,13 @@ export default async function handler(req, res) {
   if (!validateEmail(email)) return send(res, 400, { error: 'Please enter a valid email address.' });
 
   const user = users.find(u => u.email === email);
-  const key = `reset:${email}`;
-  if (otpStore.has(key)) otpStore.delete(key);
 
   if (user) {
     const otp = generateOTP();
-    otpStore.set(key, { code: otp, createdAt: Date.now(), attempts: 0 });
+    const otpToken = signOtpToken(email, otp, 'reset');
     console.log(`[RESET OTP] ${email}: ${otp}`);
     await sendEmail(email, 'AgriMind — Reset Your Password', otpEmailHtml(otp, 'reset'));
+    return send(res, 200, { message: 'If this email exists, a reset code has been sent.', otpToken });
   }
 
   send(res, 200, { message: 'If this email exists, a reset code has been sent.' });

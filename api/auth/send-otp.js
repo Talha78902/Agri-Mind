@@ -1,4 +1,4 @@
-import { users, hashPassword, validateEmail, rateLimitCheck, otpStore, generateOTP, sendEmail, otpEmailHtml, send, requirePost } from '../_backend.js';
+import { users, hashPassword, validateEmail, rateLimitCheck, generateOTP, signOtpToken, sendEmail, otpEmailHtml, send, requirePost } from '../_backend.js';
 
 export default async function handler(req, res) {
   if (!requirePost(req, res)) return;
@@ -18,10 +18,10 @@ export default async function handler(req, res) {
     if (rl.blocked) return send(res, 429, { error: `Too many OTP requests. Please wait ${rl.remainingMinutes} minute(s).` });
 
     const otp = generateOTP();
-    otpStore.set(`signup:${email}`, { code: otp, createdAt: Date.now(), attempts: 0, data: { name, passwordHash: hashPassword(password) } });
+    const otpToken = signOtpToken(email, otp, 'signup', { name, passwordHash: hashPassword(password) });
     console.log(`[SIGNUP OTP] ${email}: ${otp}`);
     const sent = await sendEmail(email, 'AgriMind — Verify Your Email', otpEmailHtml(otp, 'signup'));
-    return send(res, 200, { message: sent ? 'A verification code has been sent to your email.' : 'Failed to send email. Please try again.' });
+    return send(res, 200, { message: sent ? 'A verification code has been sent to your email.' : 'Failed to send email. Please try again.', otpToken });
   }
 
   if (purpose === 'reset') {
@@ -29,10 +29,10 @@ export default async function handler(req, res) {
     if (rl.blocked) return send(res, 429, { error: `Too many requests. Please wait ${rl.remainingMinutes} minute(s).` });
 
     const otp = generateOTP();
-    otpStore.set(`reset:${email}`, { code: otp, createdAt: Date.now(), attempts: 0 });
+    const otpToken = signOtpToken(email, otp, 'reset');
     console.log(`[RESET OTP] ${email}: ${otp}`);
     const sent = await sendEmail(email, 'AgriMind — Reset Your Password', otpEmailHtml(otp, 'reset'));
-    return send(res, 200, { message: sent ? 'A reset code has been sent to your email.' : 'Failed to send email. Please try again.' });
+    return send(res, 200, { message: sent ? 'A reset code has been sent to your email.' : 'Failed to send email. Please try again.', otpToken });
   }
 
   send(res, 400, { error: 'Unknown purpose.' });
