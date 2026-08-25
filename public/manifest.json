@@ -1,0 +1,39 @@
+{
+  "name": "AgriMind — AI Farm Advisor",
+  "short_name": "AgriMind",
+  "description": "AI-powered agriculture advisor for farmers and students. Get expert advice on crops, weather, pest detection, and farming best practices.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#022c22",
+  "theme_color": "#16a34a",
+  "orientation": "any",
+  "categories": ["education", "lifestyle"],
+  "lang": "en",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "32x32",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "New Chat",
+      "url": "/?action=new",
+      "description": "Start a new conversation"
+    }
+  ]
+}
