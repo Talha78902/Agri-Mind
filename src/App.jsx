@@ -1021,11 +1021,11 @@ function OtpInput({ length=6, onComplete, onChange }) {
     if (nd.every(d => d)) onComplete?.(nd.join(""));
   };
   return (
-    <div style={{display:"flex",gap:8,justifyContent:"center",padding:"8px 0"}}>
+    <div className="otp-container">
       {digits.map((d,i)=>(
         <input key={i} ref={el=>refs.current[i]=el} type="text" inputMode="numeric" maxLength={1} value={d}
           onChange={e=>handleChange(i,e.target.value)} onKeyDown={e=>handleKey(i,e)} onPaste={handlePaste}
-          style={{width:48,height:56,borderRadius:12,border:"2px solid var(--input-border)",background:"var(--input-bg)",color:"var(--text)",fontSize:24,textAlign:"center",fontWeight:700,outline:"none",transition:"border-color 0.2s",caretColor:"transparent"}}
+          className="otp-input"
           onFocus={e=>e.target.style.borderColor="var(--accent)"} onBlur={e=>e.target.style.borderColor="var(--input-border)"}
         />
       ))}
@@ -1551,6 +1551,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);-webkit-font
 .link-btn{margin-top:6px;padding:6px 12px;border-radius:var(--radius-xs);background:var(--chip);border:1px solid var(--chip-border);color:var(--muted);cursor:pointer;font-size:12px;transition:all 0.2s}
 .link-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
 
+/* ── OTP Input ── */
+.otp-container{display:flex;gap:8px;justify-content:center;padding:8px 0}
+.otp-input{width:48px;height:56px;border-radius:12px;border:2px solid var(--input-border);background:var(--input-bg);color:var(--text);font-size:24px;text-align:center;font-weight:700;outline:none;transition:border-color 0.2s;caret-color:transparent}
+
 /* ── Bottom Sheet ── */
 .bottom-sheet-backdrop{position:fixed;inset:0;z-index:998;display:flex;flex-direction:column;justify-content:flex-end}
 .bottom-sheet-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.5)}
@@ -1610,9 +1614,146 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);-webkit-font
 
 /* ── Responsive ── */
 @media(max-width:767px){
-  .messages-container{padding:12px 10px}
-  .message-bubble{max-width:85%}
+  html,body,#root{height:100dvh;overflow:hidden;-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
+  body{font-size:15px}
+
+  /* App Layout */
+  .app-root{height:100dvh;width:100vw;overflow:hidden;position:relative}
+
+  /* Sidebar */
+  .sidebar.mobile{width:85vw;max-width:300px;box-shadow:var(--shadow-lg);background:var(--surface)}
+  .sidebar.mobile .sidebar-header{padding:14px 16px}
+  .sidebar.mobile .sidebar-section{padding:12px 16px 8px}
+  .sidebar.mobile .sidebar-brand{gap:12px}
+  .sidebar.mobile .sidebar-logo{width:42px;height:42px;font-size:22px}
+  .sidebar.mobile .sidebar-name{font-size:17px}
+  .sidebar-mobile-close{display:block;position:absolute;top:14px;right:14px;width:32px;height:32px;border-radius:10px;background:var(--chip);border:1px solid var(--chip-border);color:var(--muted);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:5}
+  .sidebar-mobile-close:hover{background:#dc2626;color:#fff;border-color:#dc2626}
+
+  /* Sidebar Mode Buttons */
+  .sidebar-mode-btn{padding:12px 14px;font-size:14px;border-radius:12px;margin-bottom:4px}
+  .sidebar-mode-icon{font-size:20px;width:28px}
+  .sidebar-mode-name{font-size:14px}
+  .sidebar-mode-desc{font-size:11px}
+
+  /* Sidebar Chat List */
+  .sidebar-chat-btn{padding:10px 14px;font-size:14px}
+
+  /* Sidebar Footer */
+  .sidebar-footer-btn{padding:12px 14px;font-size:14px;border-radius:12px}
+  .sidebar-footer{padding:14px 16px 24px}
+  .new-chat-btn{padding:12px;font-size:14px;border-radius:12px}
+  .sidebar-label{font-size:11px}
+
+  /* Sidebar Overlay */
+  .sidebar-overlay{background:rgba(0,0,0,0.6);backdrop-filter:blur(2px)}
+
+  /* Header */
+  .chat-header{border-radius:0}
+  .desktop-header{padding:10px 12px}
+  .header-row{padding:8px 10px;gap:6px}
+  .header-title{font-size:14px}
+  .header-subtitle{font-size:10px}
+  .header-avatar{width:34px;height:34px;font-size:15px}
+  .header-action-btn{padding:6px 10px;font-size:11px;border-radius:8px}
+  .header-mode-pill{padding:6px 10px;font-size:12px;border-radius:16px}
+  .header-mode-text{font-size:12px}
   .header-weather-wrap{display:none}
-  .weather-popup.mobile{position:fixed;top:90px;left:12px;right:12px;max-width:100%}
+  .header-weather-btn{font-size:11px;padding:4px 8px}
+  .icon-btn{font-size:20px}
+
+  /* Weather Popup */
+  .weather-popup.mobile{position:fixed;top:80px;left:12px;right:12px;max-width:100%;width:auto;border-radius:var(--radius)}
+  .weather-popup{width:auto;left:12px;right:12px}
+
+  /* Messages */
+  .messages-container{padding:12px 10px;gap:12px}
+  .message-row{gap:8px}
+  .message-bubble{max-width:88%;font-size:14px;padding:10px 14px;line-height:1.65}
+  .user-bubble{border-radius:16px 16px 4px 16px}
+  .ai-bubble{border-radius:4px 16px 16px 16px}
+  .avatar{width:30px;height:30px;font-size:14px}
+
+  /* Quick Chips */
+  .quick-chips{padding:6px 10px;gap:6px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .quick-chips::-webkit-scrollbar{display:none}
+  .chip{padding:8px 14px;font-size:13px;border-radius:20px;flex-shrink:0}
+
+  /* Input Area */
+  .input-area{padding:8px 10px 12px;background:var(--surface);border-top:1px solid var(--border);padding-bottom:max(12px,env(safe-area-inset-bottom))}
+  .input-container{border-radius:14px;padding:6px 6px 6px 10px;gap:6px;min-height:48px}
+  .input-textarea{font-size:16px;max-height:100px;min-height:24px;line-height:1.5}
+  .input-icon-btn{width:38px;height:38px;border-radius:10px;font-size:18px}
+  .send-btn{width:42px;height:42px;border-radius:12px;font-size:20px}
+  .input-footer{font-size:9px;margin-top:3px}
+
+  /* Image Preview */
+  .image-preview{border-radius:12px;padding:8px 10px}
+  .image-preview-thumb{width:44px;height:44px}
+
+  /* Modals */
+  .modal-overlay{padding:12px;align-items:flex-end}
+  .modal-card{border-radius:20px 20px 16px 16px;padding:24px 20px;max-width:100%;max-height:85dvh;animation:slideUp 0.35s cubic-bezier(0.16,1,0.3,1) both}
+  .modal-icon{font-size:36px}
+  .modal-title{font-size:20px}
+  .modal-sub{font-size:13px}
+  .modal-btn-primary{padding:14px;font-size:15px;border-radius:14px}
+  .modal-btn-secondary{padding:13px;font-size:14px;border-radius:14px}
+  .modal-input{padding:12px 14px;font-size:16px}
+  .form-input{font-size:16px;padding:12px 14px;border-radius:12px}
+
+  /* Bottom Sheet */
+  .bottom-sheet{padding:16px 16px max(32px,env(safe-area-inset-bottom));max-height:80dvh;border-radius:20px 20px 0 0}
+  .bottom-sheet-title{font-size:13px}
+  .mode-grid{gap:8px}
+  .mode-card{padding:14px 12px;border-radius:14px;gap:10px}
+  .mode-icon{font-size:24px}
+  .mode-label{font-size:13px}
+  .mode-desc{font-size:11px}
+
+  /* Auth */
+  .auth-root{padding:12px;padding-bottom:max(20px,env(safe-area-inset-bottom))}
+  .auth-card{padding:24px 20px;border-radius:20px}
+  .auth-logo{width:68px;height:68px;border-radius:20px;font-size:38px}
+  .auth-title{font-size:26px}
+  .auth-sub{font-size:13px}
+  .auth-tabs{border-radius:12px;margin-bottom:16px}
+  .auth-tab{padding:12px;font-size:14px;font-weight:700}
+  .auth-form-title{font-size:20px}
+  .auth-form-sub{font-size:13px}
+  .auth-submit{padding:14px;font-size:16px;border-radius:14px}
+  .auth-social-btn{padding:12px;font-size:13px;border-radius:12px}
+
+  /* OTP Input */
+  .otp-input{width:42px;height:48px;font-size:20px}
+
+  /* Export */
+  .export-btn{padding:14px 16px;border-radius:14px}
+
+  /* City List */
+  .city-list{max-height:50dvh}
+  .city-btn{padding:10px 14px;font-size:14px;border-radius:12px}
+
+  /* Scrollbar - hide on mobile */
+  ::-webkit-scrollbar{width:0;height:0}
+
+  /* Toasts / errors */
+  .auth-error{padding:10px 12px;font-size:13px;border-radius:10px}
+
+  /* OTP */
+  .otp-container{gap:6px}
+  .otp-input{width:42px;height:48px;font-size:20px;border-radius:10px}
+}
+
+/* ── Safe Area (notch devices) ── */
+@supports(padding:max(0px,env(safe-area-inset-bottom))){
+  .input-area{padding-bottom:max(12px,env(safe-area-inset-bottom))}
+  .sidebar-footer{padding-bottom:max(18px,env(safe-area-inset-bottom))}
+}
+
+/* ── Tablet ── */
+@media(min-width:768px) and (max-width:1024px){
+  .sidebar.desktop.expanded{width:240px}
+  .message-bubble{max-width:80%}
 }
 `;
